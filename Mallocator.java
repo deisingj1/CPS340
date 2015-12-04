@@ -35,19 +35,65 @@ public class Mallocator {
 	}
 	public static void doFirstFit(LinkedList<Process> pList, LinkedList<Memory> mList) {
 		LinkedList<String> output = new LinkedList<String>();
+		String unallocated = "-";
 		for(Process p : pList) {
 			for(Memory m : mList) {
 				if( m.getSize() > p.getSize()) {
 					p.setStart(m.getStart());
 					p.setEnd(m.getStart() + p.getSize());
-					m.setSize(p.getSize());
-					output.add("" + p.getStart() + " " + p.getEnd() + " " + p.getpID());
+					m.reduceSize(p.getSize());
+					output.add("" + p.getStart() + " " + p.getEnd() + " " + p.getpID() + "\n");
 					break;
 				}
 			}
+			if(p.getStart() == -1) {
+				unallocated += p.getpID() + ",";
+			}
+		}
+		if(unallocated.equals("-")) {
+			output.add("-0");
+		}
+		else {
+			output.add(unallocated.substring(0,unallocated.length() - 1));
 		}
 		try {
 			FileIO.WriteListToFile(output, "FFoutput.data");
+		}
+		catch(IOException e) {
+			System.exit(1);
+		}
+	}
+	public static void doBestFit(LinkedList<Process> pList, LinkedList<Memory> mList) {
+		LinkedList<String> output = new LinkedList<String>();
+		String unallocated = "-";
+		Memory bestFit = null;
+		for(Process p : pList) {
+			for(Memory m : mList) {
+				if( m.getSize() > p.getSize()) {
+					if(bestFit == null || bestFit.getSize() > m.getSize()) {
+						bestFit = m;
+					}
+				}
+			}
+			if(bestFit != null) {
+				p.setStart(bestFit.getStart());
+				p.setEnd(bestFit.getStart() + p.getSize());
+				bestFit.reduceSize(p.getSize());
+				output.add("" + p.getStart() + " " + p.getEnd() + " " + p.getpID() + "\n");
+			}
+			if(p.getStart() == -1) {
+				unallocated += p.getpID() + ",";
+			}
+			bestFit = null;
+		}
+		if(unallocated.equals("-")) {
+			output.add("-0");
+		}
+		else {
+			output.add(unallocated.substring(0,unallocated.length() - 1));
+		}
+		try {
+			FileIO.WriteListToFile(output, "BFoutput.data");
 		}
 		catch(IOException e) {
 			System.exit(1);
@@ -66,8 +112,8 @@ public class Mallocator {
 	        System.out.println("File not found");
 	        System.exit(1);
 	    }
-	    System.out.println(proc.poll().getSize());
 	    doFirstFit(new LinkedList<Process>(proc), new LinkedList<Memory>(mem));
+	    doBestFit(new LinkedList<Process>(proc), new LinkedList<Memory>(mem));
 	}
 	
 }
@@ -115,7 +161,7 @@ class Memory {
 	public int getStart(){
 		return start;
 	}
-	public void setSize(int nSize) {
-		size = nSize;
+	public void reduceSize(int nSize) {
+		size = size - nSize;
 	}
 }
