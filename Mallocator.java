@@ -69,6 +69,7 @@ public class Mallocator {
 		Memory bestFit = null;
 		for(Process p : pList) {
 			for(Memory m : mList) {
+				System.out.println("m=" + m.getSize() + " p=" + p.getSize());
 				if( m.getSize() > p.getSize()) {
 					if(bestFit == null || bestFit.getSize() > m.getSize()) {
 						bestFit = m;
@@ -81,7 +82,7 @@ public class Mallocator {
 				bestFit.reduceSize(p.getSize());
 				output.add("" + p.getStart() + " " + p.getEnd() + " " + p.getpID() + "\n");
 			}
-			if(p.getStart() == -1) {
+			else {
 				unallocated += p.getpID() + ",";
 			}
 			bestFit = null;
@@ -113,6 +114,15 @@ public class Mallocator {
 	        System.exit(1);
 	    }
 	    doFirstFit(new LinkedList<Process>(proc), new LinkedList<Memory>(mem));
+	   	try {
+	    	LinkedList<String[]> fContents = parseString();
+			mem = loadMemory(fContents);
+			proc = loadProcesses(fContents);
+	    }
+	    catch(IOException e) {
+	        System.out.println("File not found");
+	        System.exit(1);
+	    }
 	    doBestFit(new LinkedList<Process>(proc), new LinkedList<Memory>(mem));
 	}
 	
