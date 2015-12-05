@@ -100,6 +100,44 @@ public class Mallocator {
 			System.exit(1);
 		}
 	}
+
+	public static void doWorstFit(LinkedList<Process> pList, LinkedList<Memory> mList) {
+		LinkedList<String> output = new LinkedList<String>();
+		String unallocated = "-";
+		Memory worstFit = null;
+		for(Process p : pList) {
+			for(Memory m : mList) {
+				System.out.println("m=" + m.getSize() + " p=" + p.getSize());
+				if( m.getSize() > p.getSize()) {
+					if(worstFit == null || worstFit.getSize() < m.getSize()) {
+						bestFit = m;
+					}
+				}
+			}
+			if(worstFit != null) {
+				p.setStart(worstFit.getStart());
+				p.setEnd(worstFit.getStart() + p.getSize());
+				worstFit.reduceSize(p.getSize());
+				output.add("" + p.getStart() + " " + p.getEnd() + " " + p.getpID() + "\n");
+			}
+			else {
+				unallocated += p.getpID() + ",";
+			}
+			worstFit = null;
+		}
+		if(unallocated.equals("-")) {
+			output.add("-0");
+		}
+		else {
+			output.add(unallocated.substring(0,unallocated.length() - 1));
+		}
+		try {
+			FileIO.WriteListToFile(output, "WFoutput.data");
+		}
+		catch(IOException e) {
+			System.exit(1);
+		}
+	}
 	
 	public static void main(String[] args) {
 	    LinkedList<Process> proc = null;
@@ -114,6 +152,7 @@ public class Mallocator {
 	        System.exit(1);
 	    }
 	    doFirstFit(new LinkedList<Process>(proc), new LinkedList<Memory>(mem));
+	   	//TODO create multiple lists on startup
 	   	try {
 	    	LinkedList<String[]> fContents = parseString();
 			mem = loadMemory(fContents);
@@ -124,6 +163,16 @@ public class Mallocator {
 	        System.exit(1);
 	    }
 	    doBestFit(new LinkedList<Process>(proc), new LinkedList<Memory>(mem));
+		try {
+	    	LinkedList<String[]> fContents = parseString();
+			mem = loadMemory(fContents);
+			proc = loadProcesses(fContents);
+	    }
+	    catch(IOException e) {
+	        System.out.println("File not found");
+	        System.exit(1);
+	    }
+	    doWorstFit(new LinkedList<Process>(proc), new LinkedList<Memory>(mem));
 	}
 	
 }
