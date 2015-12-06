@@ -110,7 +110,7 @@ public class Mallocator {
 				System.out.println("m=" + m.getSize() + " p=" + p.getSize());
 				if( m.getSize() > p.getSize()) {
 					if(worstFit == null || worstFit.getSize() < m.getSize()) {
-						bestFit = m;
+						worstFit = m;
 					}
 				}
 			}
@@ -222,5 +222,6 @@ class Memory {
 	}
 	public void reduceSize(int nSize) {
 		size = size - nSize;
+		start = end - size;
 	}
 }
